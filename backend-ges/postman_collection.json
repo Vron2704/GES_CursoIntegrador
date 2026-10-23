@@ -1,0 +1,621 @@
+{
+	"info": {
+		"_postman_id": "a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d",
+		"name": "Sistema Centro de Acopio - Guías de Remisión API",
+		"description": "Colección completa de pruebas para la API REST del Sistema de Control, Gestión y Emisión Digital de Guías de Remisión de un Centro de Acopio.\n\nIncluye:\n- Autenticación JWT (/api/auth/login)\n- Control de Acceso y Seguridad\n- CRUD de Proveedores (/api/proveedores)\n- Control de Garita y Movimientos (/api/movimientos)\n- Historial y Kardex (/api/movimientos/kardex)",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:8080",
+			"type": "string"
+		},
+		{
+			"key": "jwtToken",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "idProveedor",
+			"value": "1",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "1. Seguridad y Autenticación",
+			"item": [
+				{
+					"name": "POST Login - Exitoso (Obtener JWT)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code es 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Retorna token Bearer válido\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.token).to.be.a('string');",
+									"    pm.expect(jsonData.token.length).to.be.greaterThan(20);",
+									"    pm.expect(jsonData.type).to.eql('Bearer');",
+									"    pm.collectionVariables.set(\"jwtToken\", jsonData.token);",
+									"    console.log(\"JWT Token guardado en variable: \" + jsonData.token);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"username\": \"admin\",\n  \"password\": \"admin123\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/login",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"login"
+							]
+						}
+					}
+				},
+				{
+					"name": "POST Login - Credenciales Incorrectas (401)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code es 401 Unauthorized\", function () {",
+									"    pm.response.to.have.status(401);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"username\": \"admin\",\n  \"password\": \"password_incorrecto\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/login",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"login"
+							]
+						}
+					}
+				},
+				{
+					"name": "GET Acceso Denegado Sin Token (403/401)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Acceso bloqueado sin token\", function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([401, 403]);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/proveedores",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"proveedores"
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "2. CRUD Proveedores",
+			"item": [
+				{
+					"name": "GET Listar Proveedores",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code es 200 OK\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"pm.test(\"Respuesta es un array\", function () {",
+									"    var data = pm.response.json();",
+									"    pm.expect(data).to.be.an('array');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwtToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/proveedores",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"proveedores"
+							]
+						}
+					}
+				},
+				{
+					"name": "POST Crear Proveedor",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code es 201 Created\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"var data = pm.response.json();",
+									"pm.expect(data.idProveedor).to.be.a('number');",
+									"pm.expect(data.ruc).to.eql(\"20556677889\");",
+									"pm.collectionVariables.set(\"idProveedor\", data.idProveedor);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwtToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"ruc\": \"20556677889\",\n  \"razonSocial\": \"Agroexportadora del Sur S.A.C.\",\n  \"direccion\": \"Av. Los Libertadores 450, Ica\",\n  \"telefono\": \"987112233\",\n  \"correo\": \"ventas@agrosur.pe\",\n  \"activo\": true\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/proveedores",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"proveedores"
+							]
+						}
+					}
+				},
+				{
+					"name": "GET Obtener Proveedor por ID",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code es 200 OK\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"var data = pm.response.json();",
+									"pm.expect(data.idProveedor).to.eql(parseInt(pm.collectionVariables.get(\"idProveedor\")));"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwtToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/proveedores/{{idProveedor}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"proveedores",
+								"{{idProveedor}}"
+							]
+						}
+					}
+				},
+				{
+					"name": "PUT Actualizar Proveedor",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code es 200 OK\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"var data = pm.response.json();",
+									"pm.expect(data.telefono).to.eql(\"999888777\");"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwtToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"ruc\": \"20556677889\",\n  \"razonSocial\": \"Agroexportadora del Sur S.A.C. - Sede Central\",\n  \"direccion\": \"Av. Los Libertadores 450, Ica\",\n  \"telefono\": \"999888777\",\n  \"correo\": \"contacto@agrosur.pe\",\n  \"activo\": true\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/proveedores/{{idProveedor}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"proveedores",
+								"{{idProveedor}}"
+							]
+						}
+					}
+				},
+				{
+					"name": "POST Validación Error RUC Inválido (400)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code es 400 Bad Request por validación\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwtToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"ruc\": \"123\",\n  \"razonSocial\": \"Empresa Invalida\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/proveedores",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"proveedores"
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "3. Movimientos y Garita de Acopio",
+			"item": [
+				{
+					"name": "POST Registrar Ingreso en Garita (Pesaje Balanza)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code es 201 Created\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"var data = pm.response.json();",
+									"pm.test(\"Cálculo automático de peso neto\", function () {",
+									"    pm.expect(data.pesoBruto).to.eql(28500.00);",
+									"    pm.expect(data.pesoTara).to.eql(9200.00);",
+									"    pm.expect(data.pesoNeto).to.eql(19300.00);",
+									"    pm.expect(data.tipoMovimiento).to.eql(\"INGRESO\");",
+									"    pm.expect(data.placaVehiculo).to.eql(\"ABC-123\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwtToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"tipoMovimiento\": \"INGRESO\",\n  \"placa\": \"ABC-123\",\n  \"dniConductor\": \"12345678\",\n  \"rucProveedor\": \"20123456789\",\n  \"codigoUnidadLogistica\": \"ALM-01\",\n  \"nombreTurno\": \"Mañana\",\n  \"pesoBruto\": 28500.00,\n  \"pesoTara\": 9200.00,\n  \"observaciones\": \"Ingreso con guía remitente T001-000456, lote de café orgánico\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/movimientos",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"movimientos"
+							]
+						}
+					}
+				},
+				{
+					"name": "POST Registrar Salida de Garita",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code es 201 Created\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"var data = pm.response.json();",
+									"pm.expect(data.tipoMovimiento).to.eql(\"SALIDA\");"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwtToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"tipoMovimiento\": \"SALIDA\",\n  \"placa\": \"ABC-123\",\n  \"dniConductor\": \"12345678\",\n  \"rucProveedor\": \"20123456789\",\n  \"codigoUnidadLogistica\": \"ALM-01\",\n  \"nombreTurno\": \"Mañana\",\n  \"pesoBruto\": 15000.00,\n  \"pesoTara\": 9000.00,\n  \"observaciones\": \"Salida de vehículo tras descarga\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/movimientos",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"movimientos"
+							]
+						}
+					}
+				},
+				{
+					"name": "POST Error Garita - Placa Inexistente (400)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code es 400 Bad Request por vehículo no registrado\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwtToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"tipoMovimiento\": \"INGRESO\",\n  \"placa\": \"ZZZ-999\",\n  \"dniConductor\": \"12345678\",\n  \"rucProveedor\": \"20123456789\",\n  \"pesoBruto\": 20000.00,\n  \"pesoTara\": 8000.00\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/movimientos",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"movimientos"
+							]
+						}
+					}
+				},
+				{
+					"name": "GET Consultar Kardex Histórico",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code es 200 OK\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"var data = pm.response.json();",
+									"pm.test(\"Estructura del Kardex correcta\", function () {",
+									"    pm.expect(data.ruc).to.eql(\"20123456789\");",
+									"    pm.expect(data.totalIngresosKg).to.be.at.least(0);",
+									"    pm.expect(data.saldoNetoKg).to.be.a('number');",
+									"    pm.expect(data.movimientos).to.be.an('array');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwtToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/movimientos/kardex?id_proveedor=1&fecha_inicio=2026-01-01&fecha_fin=2026-12-31",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"movimientos",
+								"kardex"
+							],
+							"query": [
+								{
+									"key": "id_proveedor",
+									"value": "1"
+								},
+								{
+									"key": "fecha_inicio",
+									"value": "2026-01-01"
+								},
+								{
+									"key": "fecha_fin",
+									"value": "2026-12-31"
+								}
+							]
+						}
+					}
+				}
+			]
+		}
+	]
+}
