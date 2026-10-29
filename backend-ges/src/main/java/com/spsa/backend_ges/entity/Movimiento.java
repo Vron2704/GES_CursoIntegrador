@@ -54,15 +54,15 @@ public class Movimiento {
     private UnidadLogistica unidadLogistica;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_vehiculo", nullable = false)
+    @JoinColumn(name = "id_vehiculo")
     private Vehiculo vehiculo;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_conductor", nullable = false)
+    @JoinColumn(name = "id_conductor")
     private Conductor conductor;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_usuario", nullable = false)
+    @JoinColumn(name = "id_usuario")
     private Usuario usuario;
 
     @ManyToOne(fetch = FetchType.LAZY)

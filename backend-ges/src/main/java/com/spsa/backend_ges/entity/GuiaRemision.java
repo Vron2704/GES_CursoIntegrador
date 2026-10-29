@@ -24,7 +24,7 @@ public class GuiaRemision {
     @Column(name = "id_guia")
     private Long idGuia;
 
-    @Column(name = "numero_guia", nullable = false, unique = true, length = 30)
+    @Column(name = "numero_guia", nullable = false, unique = true, length = 50)
     private String numeroGuia;
 
     @Column(name = "fecha_emision", nullable = false)
@@ -52,11 +52,11 @@ public class GuiaRemision {
     private Proveedor proveedor;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_conductor", nullable = false)
+    @JoinColumn(name = "id_conductor")
     private Conductor conductor;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_vehiculo", nullable = false)
+    @JoinColumn(name = "id_vehiculo")
     private Vehiculo vehiculo;
 
     @OneToMany(mappedBy = "guiaRemision", cascade = CascadeType.ALL, orphanRemoval = true)

@@ -19,7 +19,7 @@ public class Conductor {
     @Column(name = "id_conductor")
     private Long idConductor;
 
-    @Column(name = "dni", nullable = false, unique = true, length = 8)
+    @Column(name = "dni", nullable = false, unique = true, length = 20)
     private String dni;
 
     @Column(name = "nombres", nullable = false, length = 100)
@@ -28,7 +28,7 @@ public class Conductor {
     @Column(name = "apellidos", nullable = false, length = 100)
     private String apellidos;
 
-    @Column(name = "numero_licencia", nullable = false, unique = true, length = 20)
+    @Column(name = "numero_licencia", nullable = false, unique = true, length = 30)
     private String numeroLicencia;
 
     @Column(name = "telefono", length = 20)
